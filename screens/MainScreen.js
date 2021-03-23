@@ -1,8 +1,9 @@
 import React, {useState} from 'react'
-import {Text, Button, View, SectionList, StyleSheet} from 'react-native'
-import axios from 'axios'
-import Card from '../components/Card'
+import {Text, Button, View, FlatList, StyleSheet, ScrollView} from 'react-native'
 import { TextInput } from 'react-native-gesture-handler'
+import {Feather} from '@expo/vector-icons'
+import useResults from '../hooks/useResults'
+import ResultsList from '../components/ResultsList'
 
 
 
@@ -10,73 +11,60 @@ import { TextInput } from 'react-native-gesture-handler'
 
 // Why does the setState() funtion trigger repeatedly when it is only run once.
 
+// How do I pass into a prop into a screen object in react navigator
 
+// How do you style a SectionList properly?
 
-const searchData = function (term) {
-
-    const options = {
-      method: 'GET',
-      url: 'https://api.yelp.com/v3/businesses/search?location='+term+'&limit=10',
-      headers: {
-        'Authorization' : 'Bearer MMMQuWnLGwlTYdSMtKujs774rvSF8-g78jwHgo35nIoahZ1df13ph_HxFOTGIpGD-_CVpb--RMaPA2clqd8koS8x58EPk6H9fkhW791Uws_LRizh44UyVyGh4feNX3Yx' 
-      }
-    }
-
-    return axios(options).then((response)=>{
-
-        return response.data.businesses.reduce((acc, curr)=>{
-            function pushData(i) {
-                let newVal = acc
-                newVal[i].data = newVal[i].data.concat([curr.name, curr.image_url, curr.rating, curr.review_count])
-                return acc
-            }
-            switch(curr.price) {
-                case '$':
-                case undefined:
-                    return pushData(0)
-                case '$$':
-                case '$$$':
-                    return pushData(1)
-                case '$$$$':
-                    return pushData(2)
-            }
-
-        }, [
-            {title: "Cost Effective", data: []},
-            {title: "Bit Pricier", data: []},
-            {title: "Big Spender", data: []}
-        ])
-
-    }).catch((err)=>console.log(err))
-  
-}
+// Why do I keep getting the warning related to the virtualized keys?
 
 
 
 const MainScreen = function (props) {
 
-    let [data, updateData] = useState([])
-    let [input, updateInput] = useState('New York')
+    let [input, updateInput] = useState('')
+    let [data, errorMessage, searchData] = useResults()
 
 
-    //searchData(input).then((data)=> updateData(data))
+    const filterByPrice = function (price) {
+        return data.filter((datum) => {
+            return datum.price == price
+        })
+    }
 
     return (
-        <View>
-            <Text>Main Screen</Text>
-            <TextInput style={styles.inputStyle} value={input} onChangeText={(val)=>{console.log(val)}}></TextInput>
-            <Button onPress={()=>{props.navigation.navigate('Details')}} title={'Detail Screen'}></Button>
-            <SectionList keyExtractor={(item, index) => item + index} sections={data} renderItem={({ item }) => <Card title={item}/>} renderSectionHeader={({section : {title}}) => {return <Text>{title}</Text>}}></SectionList>
-        </View>
+        <>
+            <View style={styles.inputStyle}>
+                <Feather name={"search"} style={styles.iconStyle}></Feather>
+                {errorMessage ? <Text>{errorMessage}</Text> : null}
+                <TextInput autoCorrect={false} horizontal={true} returnKeyType={'search'} style={styles.textInput} value={input} onEndEditing={()=>{searchData(input)}} onChangeText={(val)=>{updateInput(val)}}></TextInput>
+            </View>
+            <ScrollView>
+                <ResultsList title={'Cost Effective'} data={filterByPrice('$')} toDetail={(id) => {props.navigation.navigate('Details', {id})}}></ResultsList>
+                <ResultsList title={'Bit Pricier'} data={filterByPrice('$$')} toDetail={(id) => {props.navigation.navigate('Details', {id})}}></ResultsList>
+                <ResultsList title={'Big Spender!'} data={filterByPrice('$$$')} toDetail={(id) => {props.navigation.navigate('Details', {id})}}></ResultsList>
+            </ScrollView>
+        </>
     )
 }
 
 
 const styles = StyleSheet.create({
     inputStyle: {
-        width: 200,
         height: 40,
-        backgroundColor: 'grey'
+        backgroundColor: 'lightgrey',
+        flexDirection: 'row',
+        marginHorizontal: 15,
+        marginVertical: 12,
+        borderRadius: 6
+    },
+    textInput: {
+        fontSize: 16,
+        flex : 1
+    },
+    iconStyle : {
+        fontSize : 35,
+        alignSelf : 'center',
+        marginHorizontal : 12
     }
 })
 
