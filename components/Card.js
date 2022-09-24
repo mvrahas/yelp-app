@@ -21,11 +21,13 @@ const styles = StyleSheet.create({
     },
     img : {
         width: 260,
-        height: 130
+        height: 130,
+        borderRadius:10
     },
     bold : {
         fontSize: 16,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        marginTop:5
     },
     reg : {
         fontSize: 14,

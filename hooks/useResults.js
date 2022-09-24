@@ -13,15 +13,18 @@ export default function () {
     
     
         try {
-    
-            const response = await yelp.get(`/search`, {
-                params : {
-                    limit : 50,
-                    location
-                }
-            })
+            
+            if(location){
+                const response = await yelp.get(`/search`, {
+                    params : {
+                        limit : 50,
+                        location
+                    }
+                })
+                updateData(response.data.businesses)
+            }
 
-            updateData(response.data.businesses)
+            setErrorMessage('')
     
         } catch (e) {
             setErrorMessage('Something went wrong')
